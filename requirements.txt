@@ -1,0 +1,56 @@
+# AI-Powered Network Operations Workshop
+# Python 3.10+ required
+#
+# NOTE: This file is provided as a fallback for pip users.
+# The recommended approach is to use uv with pyproject.toml:
+#   uv sync
+#
+# For pip users:
+#   pip install -r requirements.txt
+
+# Ansible for network automation (Lab 1)
+ansible==9.1.0
+ansible-core==2.16.2
+
+# Network automation libraries
+paramiko==3.4.0
+netmiko==4.3.0
+napalm==4.1.0
+
+# MCP Server (Lab 2)
+mcp[cli]==1.0.0
+fastmcp==0.2.0
+
+# AI/LLM APIs
+openai==1.54.0
+anthropic==0.39.0
+
+# HTTP requests
+requests==2.31.0
+httpx==0.26.0
+
+# Environment variables
+python-dotenv==1.0.0
+
+# Monitoring and observability (Lab 3)
+prometheus-client==0.19.0
+
+# Data processing
+pyyaml==6.0.1
+jinja2==3.1.2
+jsonschema==4.20.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.23.3
+
+# Utilities
+rich==13.7.0
+click==8.1.7
+tabulate==0.9.0
+
+# Type hints
+typing-extensions==4.9.0
+
+# Async support
+aiohttp==3.9.1
