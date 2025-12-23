@@ -1,0 +1,90 @@
+[project]
+name = "packt-netops-ai-workshop"
+version = "0.1.0"
+description = "Build Intelligent Networks with AI - Hands-on Workshop"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "William Collins" }
+]
+keywords = ["network", "automation", "ai", "llm", "ansible", "mcp"]
+
+dependencies = [
+    # Ansible for network automation (Lab 1)
+    "ansible>=9.1.0",
+    "ansible-core>=2.16.2",
+
+    # Network automation libraries
+    "paramiko>=3.4.0",
+    "netmiko>=4.3.0",
+    "napalm>=4.1.0",
+
+    # MCP Server (Lab 2)
+    "mcp[cli]>=1.0.0",
+    "fastmcp>=0.2.0",
+
+    # AI/LLM APIs
+    "openai>=1.54.0",
+    "anthropic>=0.39.0",
+
+    # HTTP requests
+    "requests>=2.31.0",
+    "httpx>=0.26.0",
+
+    # Environment variables
+    "python-dotenv>=1.0.0",
+
+    # Monitoring and observability (Lab 3)
+    "prometheus-client>=0.19.0",
+
+    # Data processing
+    "pyyaml>=6.0.1",
+    "jinja2>=3.1.2",
+    "jsonschema>=4.20.0",
+
+    # Utilities
+    "rich>=13.7.0",
+    "click>=8.1.7",
+    "tabulate>=0.9.0",
+
+    # Type hints
+    "typing-extensions>=4.9.0",
+
+    # Async support
+    "aiohttp>=3.9.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.23.3",
+    "ruff>=0.1.0",
+    "mypy>=1.8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["scripts"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.23.3",
+    "ruff>=0.1.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["lab-02-mcp-server/tests"]
