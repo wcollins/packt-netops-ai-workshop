@@ -1,5 +1,7 @@
 # Build Intelligent Networks with AI
 
+![Event](./img/event.png)
+
 A hands-on workshop teaching network engineers how to leverage AI and LLMs for practical network automation, monitoring, and operations.
 
 **Duration:** 5.5 hours | **Format:** Online, hands-on | **Date:** January 24, 2026

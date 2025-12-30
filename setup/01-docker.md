@@ -81,7 +81,15 @@ No configuration needed — OrbStack automatically manages resources.
 ## Install Containerlab
 
 ```bash
-bash -c "$(curl -sL https://get.containerlab.dev)"
+curl -sL https://get.containerlab.dev/setup
+```
+
+### Containerlab with Docker
+
+If you don't have docker installed, you can run the containerlab installer using `"all"`:
+
+```bash
+curl -sL https://containerlab.dev/setup | sudo -E bash -s "all"
 ```
 
 ---
