@@ -1,6 +1,6 @@
 # ⏰ Getting Started
 
-Setup instructions for the **Build Intelligent Networks with AI** workshop.
+Setup instructions for the **Build Intelligent Networks with AI** workshop. All of these steps should be completed and validated prior to beginning the workshop.
 
 **Time required:** 45-60 minutes
 
