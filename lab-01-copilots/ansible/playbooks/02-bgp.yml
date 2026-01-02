@@ -1,0 +1,142 @@
+# Playbook: Configure eBGP Underlay
+# Purpose: Establish BGP peering between spines and leaves
+#
+# Run with: ansible-playbook playbooks/02-bgp.yml
+# Dry-run:  ansible-playbook playbooks/02-bgp.yml --check --diff
+#
+# MCP Usage: ansible-playbook playbooks/02-bgp.yml --extra-vars "target_host=spine1"
+#            This limits execution to a single device for MCP tool integration.
+#
+# BGP Design:
+#   - Spines: AS 65100 (shared)
+#   - Leaves: AS 65101-65104
+#   - eBGP peering over point-to-point links
+#
+# WORKING EXAMPLE: This playbook is complete for spine1 and leaf1.
+# EXTENSION TASK: Add configuration for spine2 and leaf2-4.
+# See prompts/extend-bgp.md for AI assistance.
+
+---
+- name: Configure BGP on spine switches
+  # Use target_host to limit to specific device, defaults to all spines
+  hosts: "{{ (target_host | default('all')) ~ ':&spines' }}"
+  gather_facts: false
+
+  vars:
+    # =========================================================================
+    # WORKING EXAMPLE: spine1 BGP neighbor configuration
+    # =========================================================================
+    # Each neighbor is a leaf switch with its own AS number
+    spine1_bgp_neighbors:
+      - neighbor: 10.0.1.2
+        remote_as: 65101
+        description: "leaf1"
+      - neighbor: 10.0.2.2
+        remote_as: 65102
+        description: "leaf2"
+      - neighbor: 10.0.3.2
+        remote_as: 65103
+        description: "leaf3"
+      - neighbor: 10.0.4.2
+        remote_as: 65104
+        description: "leaf4"
+
+    # =========================================================================
+    # EXTENSION TASK: Add spine2 BGP neighbor configuration
+    # =========================================================================
+    # spine2 uses IP addresses in the 10.0.5-8.x range
+    # See prompts/extend-bgp.md for AI prompt
+    spine2_bgp_neighbors: []
+
+  tasks:
+    - name: Configure BGP on spine1
+      when: inventory_hostname == 'spine1'
+      arista.eos.eos_bgp_global:
+        config:
+          as_number: "{{ bgp_asn }}"
+          router_id: 1.1.1.1
+        state: merged
+
+    - name: Configure BGP neighbors on spine1
+      when: inventory_hostname == 'spine1'
+      arista.eos.eos_config:
+        lines:
+          - "neighbor {{ item.neighbor }} remote-as {{ item.remote_as }}"
+          - "neighbor {{ item.neighbor }} description {{ item.description }}"
+        parents:
+          - router bgp {{ bgp_asn }}
+      loop: "{{ spine1_bgp_neighbors }}"
+
+    # EXTENSION TASK: Add tasks for spine2 BGP (router_id: 2.2.2.2)
+
+    - name: Display BGP summary
+      arista.eos.eos_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_output
+
+    - name: Show BGP summary
+      ansible.builtin.debug:
+        var: bgp_output.stdout_lines
+
+- name: Configure BGP on leaf switches
+  # Use target_host to limit to specific device, defaults to all leaves
+  hosts: "{{ (target_host | default('all')) ~ ':&leaves' }}"
+  gather_facts: false
+
+  vars:
+    # =========================================================================
+    # WORKING EXAMPLE: leaf1 BGP configuration
+    # =========================================================================
+    # Each leaf peers with both spines (AS 65100)
+    leaf_bgp_config:
+      leaf1:
+        router_id: 11.11.11.11
+        neighbors:
+          - neighbor: 10.0.1.1
+            remote_as: 65100
+            description: "spine1"
+          - neighbor: 10.0.5.1
+            remote_as: 65100
+            description: "spine2"
+
+      # =========================================================================
+      # EXTENSION TASK: Add leaf2, leaf3, leaf4 BGP configurations
+      # =========================================================================
+      # Each leaf needs:
+      #   - Unique router_id (leaf2: 22.22.22.22, leaf3: 33.33.33.33, leaf4: 44.44.44.44)
+      #   - Two neighbors (spine1 and spine2) with remote_as: 65100
+      # IP addressing:
+      #   leaf2: neighbors 10.0.2.1 (spine1), 10.0.6.1 (spine2)
+      #   leaf3: neighbors 10.0.3.1 (spine1), 10.0.7.1 (spine2)
+      #   leaf4: neighbors 10.0.4.1 (spine1), 10.0.8.1 (spine2)
+      # See prompts/extend-bgp.md for AI prompt
+
+  tasks:
+    - name: Configure BGP on leaf switches
+      arista.eos.eos_bgp_global:
+        config:
+          as_number: "{{ bgp_asn }}"
+          router_id: "{{ leaf_bgp_config[inventory_hostname].router_id | default('0.0.0.0') }}"
+        state: merged
+      when: inventory_hostname in leaf_bgp_config
+
+    - name: Configure BGP neighbors on leaf switches
+      arista.eos.eos_config:
+        lines:
+          - "neighbor {{ item.neighbor }} remote-as {{ item.remote_as }}"
+          - "neighbor {{ item.neighbor }} description {{ item.description }}"
+        parents:
+          - router bgp {{ bgp_asn }}
+      loop: "{{ leaf_bgp_config[inventory_hostname].neighbors | default([]) }}"
+      when: inventory_hostname in leaf_bgp_config
+
+    - name: Display BGP summary
+      arista.eos.eos_command:
+        commands:
+          - show ip bgp summary
+      register: bgp_output
+
+    - name: Show BGP summary
+      ansible.builtin.debug:
+        var: bgp_output.stdout_lines

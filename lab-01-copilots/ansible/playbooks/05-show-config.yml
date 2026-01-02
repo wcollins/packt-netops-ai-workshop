@@ -1,0 +1,54 @@
+# Playbook: Get Running Configuration from a Device
+# Purpose: MCP-callable playbook for retrieving device configurations
+#
+# Run with: ansible-playbook playbooks/05-show-config.yml --extra-vars "target_host=spine1"
+#
+# Required Variables:
+#   - target_host: Device name (spine1, spine2, leaf1-4)
+#
+# Optional Variables:
+#   - section: Configuration section to show (e.g., "interfaces", "bgp", "vlans")
+#
+# This playbook is designed for MCP server integration. The MCP server
+# invokes this playbook to retrieve configurations on demand.
+#
+# Example MCP interaction:
+#   User: "Show me the running config for leaf1"
+#   MCP: Calls this playbook with target_host=leaf1
+
+---
+- name: Get running configuration
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+        fail_msg: "Required variable 'target_host' not provided (e.g., spine1, leaf1)"
+        success_msg: "Target host: {{ target_host }}"
+
+    - name: Get full running configuration
+      arista.eos.eos_command:
+        commands:
+          - show running-config
+      register: full_config
+      when: section is not defined
+
+    - name: Get section-specific configuration
+      arista.eos.eos_command:
+        commands:
+          - "show running-config section {{ section }}"
+      register: section_config
+      when: section is defined
+
+    - name: Display full configuration
+      ansible.builtin.debug:
+        msg: "{{ full_config.stdout[0] }}"
+      when: section is not defined
+
+    - name: Display section configuration
+      ansible.builtin.debug:
+        msg: "{{ section_config.stdout[0] }}"
+      when: section is defined

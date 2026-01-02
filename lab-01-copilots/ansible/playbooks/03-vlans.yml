@@ -1,0 +1,86 @@
+# Playbook: Configure VLANs on Leaf Switches
+# Purpose: Create VLANs for network segmentation
+#
+# Run with: ansible-playbook playbooks/03-vlans.yml
+# Dry-run:  ansible-playbook playbooks/03-vlans.yml --check --diff
+#
+# MCP Usage (single VLAN):
+#   ansible-playbook playbooks/03-vlans.yml --extra-vars "target_host=leaf1 vlan_id=30 vlan_name=Management"
+#   This adds a single VLAN to a specific device for MCP tool integration.
+#
+# VLAN Design:
+#   - VLAN 10: Web Servers
+#   - VLAN 20: Database Servers
+#   - VLAN 30: Management (extension task)
+#
+# WORKING EXAMPLE: This playbook creates VLANs 10 and 20.
+# EXTENSION TASK: Add VLAN 30 and optional SVIs.
+# See prompts/extend-vlans.md for AI assistance.
+
+---
+- name: Configure VLANs on leaf switches
+  # Use target_host to limit to specific device, defaults to all leaves
+  hosts: "{{ (target_host | default('all')) ~ ':&leaves' }}"
+  gather_facts: false
+
+  vars:
+    # =========================================================================
+    # WORKING EXAMPLE: Default VLAN configuration (used when no extra-vars)
+    # =========================================================================
+    default_vlans:
+      - vlan_id: 10
+        name: Web_Servers
+      - vlan_id: 20
+        name: Database_Servers
+
+      # =========================================================================
+      # EXTENSION TASK: Add VLAN 30 for Management
+      # =========================================================================
+      # Follow the same pattern as VLANs 10 and 20
+      # See prompts/extend-vlans.md for AI prompt
+
+    # =========================================================================
+    # MCP SUPPORT: Single VLAN via extra-vars
+    # =========================================================================
+    # When vlan_id and vlan_name are provided, create only that VLAN
+    single_vlan: "{{ [{'vlan_id': vlan_id | int, 'name': vlan_name}] if (vlan_id is defined and vlan_name is defined) else [] }}"
+
+    # Use single_vlan if provided, otherwise use default_vlans
+    vlans: "{{ single_vlan if single_vlan else default_vlans }}"
+
+  tasks:
+    - name: Create VLANs
+      arista.eos.eos_vlans:
+        config: "{{ vlans }}"
+        state: merged
+
+    - name: Display VLANs
+      arista.eos.eos_command:
+        commands:
+          - show vlan
+      register: vlan_output
+
+    - name: Show VLAN output
+      ansible.builtin.debug:
+        var: vlan_output.stdout_lines
+
+    - name: Verify VLANs created
+      arista.eos.eos_command:
+        commands:
+          - show vlan brief
+      register: vlan_brief
+
+    - name: Display VLAN status
+      ansible.builtin.debug:
+        msg: "VLANs configured on {{ inventory_hostname }}"
+
+# =============================================================================
+# EXTENSION TASK (BONUS): Configure SVIs for inter-VLAN routing
+# =============================================================================
+# Create SVI interfaces with IP addresses:
+#   - Vlan10: 192.168.10.1/24
+#   - Vlan20: 192.168.20.1/24
+#   - Vlan30: 192.168.30.1/24
+#
+# Use arista.eos.eos_l3_interfaces module with interface names like "Vlan10"
+# See prompts/extend-vlans.md for AI prompt
