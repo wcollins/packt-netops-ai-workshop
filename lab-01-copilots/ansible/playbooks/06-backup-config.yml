@@ -1,0 +1,65 @@
+# Playbook: Backup Device Configuration to Local File
+# Purpose: MCP-callable playbook for backing up configurations
+#
+# Run with: ansible-playbook playbooks/06-backup-config.yml --extra-vars "target_host=spine1"
+#
+# Required Variables:
+#   - target_host: Device name (spine1, spine2, leaf1-4)
+#
+# Output:
+#   - Backup saved to: backups/<hostname>_<timestamp>.cfg
+#
+# This playbook is designed for MCP server integration. The MCP server
+# invokes this playbook to backup configurations on demand.
+#
+# Example MCP interaction:
+#   User: "Backup the config for leaf2"
+#   MCP: Calls this playbook with target_host=leaf2
+
+---
+- name: Backup device configuration
+  hosts: "{{ target_host }}"
+  gather_facts: true  # Need ansible_date_time
+
+  vars:
+    backup_dir: "{{ playbook_dir }}/../backups"
+    timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+    backup_filename: "{{ inventory_hostname }}_{{ timestamp }}.cfg"
+
+  tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+        fail_msg: "Required variable 'target_host' not provided (e.g., spine1, leaf1)"
+        success_msg: "Backing up configuration for: {{ target_host }}"
+
+    - name: Ensure backup directory exists
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Get running configuration
+      arista.eos.eos_command:
+        commands:
+          - show running-config
+      register: running_config
+
+    - name: Save configuration to local file
+      ansible.builtin.copy:
+        content: |
+          ! Backup of {{ inventory_hostname }}
+          ! Timestamp: {{ ansible_date_time.iso8601 }}
+          ! Backed up via MCP/Ansible integration
+          !
+          {{ running_config.stdout[0] }}
+        dest: "{{ backup_dir }}/{{ backup_filename }}"
+        mode: "0644"
+      delegate_to: localhost
+
+    - name: Display backup location
+      ansible.builtin.debug:
+        msg: "Configuration backed up to: backups/{{ backup_filename }}"

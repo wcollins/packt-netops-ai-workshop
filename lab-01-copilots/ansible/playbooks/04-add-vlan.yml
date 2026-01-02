@@ -1,0 +1,60 @@
+# Playbook: Add a Single VLAN to a Device
+# Purpose: MCP-callable playbook for adding VLANs via Claude Desktop
+#
+# Run with: ansible-playbook playbooks/04-add-vlan.yml --extra-vars "target_host=leaf1 vlan_id=30 vlan_name=Management"
+# Dry-run:  ansible-playbook playbooks/04-add-vlan.yml --check --diff --extra-vars "target_host=leaf1 vlan_id=30 vlan_name=Management"
+#
+# Required Variables:
+#   - target_host: Device name (leaf1, leaf2, leaf3, leaf4)
+#   - vlan_id: VLAN ID to create (1-4094)
+#   - vlan_name: Name for the VLAN
+#
+# This playbook is designed for MCP server integration. The MCP server
+# invokes this playbook with --extra-vars to add VLANs on demand.
+#
+# Example MCP interaction:
+#   User: "Add VLAN 15 called 'Monitoring' to leaf2"
+#   MCP: Calls this playbook with target_host=leaf2 vlan_id=15 vlan_name=Monitoring
+
+---
+- name: Add a single VLAN to a leaf switch
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+          - vlan_id is defined
+          - vlan_name is defined
+          - vlan_id | int >= 1
+          - vlan_id | int <= 4094
+        fail_msg: |
+          Required variables missing or invalid:
+            - target_host: Device name (e.g., leaf1)
+            - vlan_id: VLAN ID (1-4094)
+            - vlan_name: VLAN name
+        success_msg: "All required variables provided"
+
+    - name: Create VLAN {{ vlan_id }} ({{ vlan_name }})
+      arista.eos.eos_vlans:
+        config:
+          - vlan_id: "{{ vlan_id | int }}"
+            name: "{{ vlan_name }}"
+        state: merged
+      register: vlan_result
+
+    - name: Verify VLAN creation
+      arista.eos.eos_command:
+        commands:
+          - "show vlan id {{ vlan_id }}"
+      register: vlan_verify
+
+    - name: Display result
+      ansible.builtin.debug:
+        msg: "VLAN {{ vlan_id }} ({{ vlan_name }}) successfully created on {{ inventory_hostname }}"
+
+    - name: Show VLAN details
+      ansible.builtin.debug:
+        var: vlan_verify.stdout_lines
