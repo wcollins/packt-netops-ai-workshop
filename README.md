@@ -1,6 +1,6 @@
 # Build Intelligent Networks with AI
 
-![Event](./img/event.png)
+![Event](./img/workshop.png)
 
 A hands-on workshop teaching network engineers how to leverage AI and LLMs for practical network automation, monitoring, and operations.
 
