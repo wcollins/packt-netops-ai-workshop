@@ -1,0 +1,144 @@
+# Playbook: Configure L3 Interfaces on Spine and Leaf Switches
+# Purpose: Assign IP addresses to Ethernet interfaces for BGP peering
+#
+# Run with: ansible-playbook playbooks/01-interfaces.yml
+# Dry-run:  ansible-playbook playbooks/01-interfaces.yml --check --diff
+#
+# MCP Usage: ansible-playbook playbooks/01-interfaces.yml --extra-vars "target_host=spine1"
+#            This limits execution to a single device for MCP tool integration.
+#
+# WORKING EXAMPLE: This playbook is complete for spine1 and leaf1.
+# EXTENSION TASK: Add configuration for spine2 and leaf2-4.
+# See prompts/extend-interfaces.md for AI assistance.
+
+---
+- name: Configure L3 interfaces on spine switches
+  # Use target_host to limit to specific device, defaults to all spines
+  hosts: "{{ (target_host | default('all')) ~ ':&spines' }}"
+  gather_facts: false
+
+  vars:
+    # =========================================================================
+    # WORKING EXAMPLE: spine1 interface configuration
+    # =========================================================================
+    # Each interface connects to a leaf switch using point-to-point /30 subnets
+    # Note: eos_l3_interfaces only supports name, ipv4, ipv6.
+    #       Use eos_interfaces module for descriptions if needed.
+    spine1_interfaces:
+      - name: Ethernet1  # Link to leaf1
+        ipv4:
+          - address: 10.0.1.1/30
+      - name: Ethernet2  # Link to leaf2
+        ipv4:
+          - address: 10.0.2.1/30
+      - name: Ethernet3  # Link to leaf3
+        ipv4:
+          - address: 10.0.3.1/30
+      - name: Ethernet4  # Link to leaf4
+        ipv4:
+          - address: 10.0.4.1/30
+
+    # =========================================================================
+    # EXTENSION TASK: Add spine2 interface configuration
+    # =========================================================================
+    # Use IP addresses 10.0.5.1/30 through 10.0.8.1/30
+    # See prompts/extend-interfaces.md for AI prompt
+    spine2_interfaces: []
+
+  tasks:
+    - name: Set spine1 interfaces to layer3 mode
+      when: inventory_hostname == 'spine1'
+      arista.eos.eos_interfaces:
+        config:
+          - name: Ethernet1
+            mode: layer3
+            enabled: true
+          - name: Ethernet2
+            mode: layer3
+            enabled: true
+          - name: Ethernet3
+            mode: layer3
+            enabled: true
+          - name: Ethernet4
+            mode: layer3
+            enabled: true
+        state: merged
+
+    - name: Configure IP addresses on spine1
+      when: inventory_hostname == 'spine1'
+      arista.eos.eos_l3_interfaces:
+        config: "{{ spine1_interfaces }}"
+        state: merged
+
+    # EXTENSION TASK: Add tasks for spine2 (set to layer3 mode, then configure IPs)
+
+    - name: Display configured interfaces
+      arista.eos.eos_command:
+        commands:
+          - show ip interface brief
+      register: interface_output
+
+    - name: Show interface configuration
+      ansible.builtin.debug:
+        var: interface_output.stdout_lines
+
+- name: Configure L3 interfaces on leaf switches
+  # Use target_host to limit to specific device, defaults to all leaves
+  hosts: "{{ (target_host | default('all')) ~ ':&leaves' }}"
+  gather_facts: false
+
+  vars:
+    # Each leaf has 2 interfaces: one to each spine
+    # Note: eos_l3_interfaces only supports name, ipv4, ipv6.
+    #       Use eos_interfaces module for descriptions if needed.
+    leaf_interfaces:
+      # =========================================================================
+      # WORKING EXAMPLE: leaf1 interface configuration
+      # =========================================================================
+      leaf1:
+        - name: Ethernet1  # Link to spine1
+          ipv4:
+            - address: 10.0.1.2/30
+        - name: Ethernet2  # Link to spine2
+          ipv4:
+            - address: 10.0.5.2/30
+
+      # =========================================================================
+      # EXTENSION TASK: Add leaf2, leaf3, leaf4 interface configurations
+      # =========================================================================
+      # IP addressing scheme:
+      #   leaf2: Eth1 -> spine1 (10.0.2.2/30), Eth2 -> spine2 (10.0.6.2/30)
+      #   leaf3: Eth1 -> spine1 (10.0.3.2/30), Eth2 -> spine2 (10.0.7.2/30)
+      #   leaf4: Eth1 -> spine1 (10.0.4.2/30), Eth2 -> spine2 (10.0.8.2/30)
+      # See prompts/extend-interfaces.md for AI prompt
+
+  tasks:
+    - name: Set leaf1 interfaces to layer3 mode
+      when: inventory_hostname == 'leaf1'
+      arista.eos.eos_interfaces:
+        config:
+          - name: Ethernet1
+            mode: layer3
+            enabled: true
+          - name: Ethernet2
+            mode: layer3
+            enabled: true
+        state: merged
+
+    # EXTENSION TASK: Add tasks to set leaf2-4 interfaces to layer3 mode
+
+    - name: Configure IP addresses on leaf switches
+      when: inventory_hostname in leaf_interfaces
+      arista.eos.eos_l3_interfaces:
+        config: "{{ leaf_interfaces[inventory_hostname] }}"
+        state: merged
+
+    - name: Display configured interfaces
+      arista.eos.eos_command:
+        commands:
+          - show ip interface brief
+      register: interface_output
+
+    - name: Show interface configuration
+      ansible.builtin.debug:
+        var: interface_output.stdout_lines

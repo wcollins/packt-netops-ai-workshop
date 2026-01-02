@@ -1,0 +1,19 @@
+---
+# Common variables for all Arista devices
+#
+# These variables apply to all hosts in the inventory.
+# Override in group_vars/spines.yml or host_vars/ for specific settings.
+
+# Ansible connection settings
+ansible_network_os: arista.eos.eos
+ansible_user: admin
+ansible_password: admin
+ansible_become: true
+ansible_become_method: enable
+ansible_become_password: admin
+ansible_connection: ansible.netcommon.network_cli
+
+# SSH settings (disable host key checking for lab)
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+ansible_host_key_checking: false
+ansible_paramiko_host_key_auto_add: true
