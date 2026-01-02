@@ -1,0 +1,20 @@
+# Ansible Galaxy Collections for Network Automation Workshop
+#
+# Install with: ansible-galaxy collection install -r requirements.yml
+#
+# Note: These collections are required for Arista EOS automation.
+# Version constraints ensure compatibility with playbook syntax.
+
+collections:
+  # Arista EOS collection - network resource modules
+  # v12.0.0+ uses new eos_l3_interfaces format (ipv4 as list of dicts)
+  - name: arista.eos
+    version: ">=12.0.0"
+
+  # Network common utilities - required by arista.eos
+  - name: ansible.netcommon
+    version: ">=8.0.0"
+
+  # Ansible utilities - required for some filters
+  - name: ansible.utils
+    version: ">=6.0.0"

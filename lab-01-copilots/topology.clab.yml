@@ -1,0 +1,66 @@
+---
+# Containerlab Topology: Spine-Leaf Network
+# Workshop: Build Intelligent Networks with AI
+#
+# Deploy:  containerlab deploy -t topology.clab.yml
+# Destroy: containerlab destroy -t topology.clab.yml
+# Inspect: containerlab inspect -t topology.clab.yml
+
+name: netops-workshop
+
+mgmt:
+  network: netops-workshop
+  ipv4-subnet: 198.18.1.0/24
+
+topology:
+  kinds:
+    arista_ceos:
+      image: ceos:${CEOS_VERSION:=4.35.0.1F}
+
+  nodes:
+
+    # spines
+    spine1:
+      kind: arista_ceos
+      startup-config: config/spine1.cfg
+      mgmt-ipv4: 198.18.1.11
+
+    spine2:
+      kind: arista_ceos
+      startup-config: config/spine2.cfg
+      mgmt-ipv4: 198.18.1.12
+
+    # leafs
+    leaf1:
+      kind: arista_ceos
+      startup-config: config/leaf1.cfg
+      mgmt-ipv4: 198.18.1.21
+
+    leaf2:
+      kind: arista_ceos
+      startup-config: config/leaf2.cfg
+      mgmt-ipv4: 198.18.1.22
+
+    leaf3:
+      kind: arista_ceos
+      startup-config: config/leaf3.cfg
+      mgmt-ipv4: 198.18.1.23
+
+    leaf4:
+      kind: arista_ceos
+      startup-config: config/leaf4.cfg
+      mgmt-ipv4: 198.18.1.24
+
+  links:
+
+    # spine1 to leaf connections
+    - endpoints: ["spine1:eth1", "leaf1:eth1"]
+    - endpoints: ["spine1:eth2", "leaf2:eth1"]
+    - endpoints: ["spine1:eth3", "leaf3:eth1"]
+    - endpoints: ["spine1:eth4", "leaf4:eth1"]
+
+    # spine2 to leaf connections
+    - endpoints: ["spine2:eth1", "leaf1:eth2"]
+    - endpoints: ["spine2:eth2", "leaf2:eth2"]
+    - endpoints: ["spine2:eth3", "leaf3:eth2"]
+    - endpoints: ["spine2:eth4", "leaf4:eth2"]
