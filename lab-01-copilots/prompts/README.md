@@ -5,44 +5,54 @@ This folder contains example prompts to help you extend the working Ansible play
 ## How to Use These Prompts
 
 1. **Open the prompt file** for the task you're working on
-2. **Copy the prompt** content
-3. **Use Claude Code** in one of these ways:
-   - Run `claude` in your terminal and paste the prompt
-   - In VS Code with Claude extension, use the chat panel
-   - Use `/chat` command if available in your IDE
-4. **Review the generated code** before using it
-5. **Always validate** with `--check --diff` before applying
+2. **Copy the prompt** content (from the code block)
+3. **Run Claude Code** in your terminal with `claude`
+4. **Paste the prompt** - Claude Code will create the extension playbook directly
+5. **Review the generated file** before applying
+6. **Always validate** with `--check --diff` before applying
 
-> **Tip**: Claude Code can read your existing playbook files directly. You can say:
-> "Read playbooks/01-interfaces.yml and extend it for spine2 and leaf2-4"
+> **Note**: Claude Code creates extension files directly (e.g., `01.5-interfaces.yml`) rather than requiring you to copy-paste YAML. This streamlines the workflow.
 
 ## Available Prompts
 
-| File | Purpose | Extends |
+| File | Purpose | Creates |
 |------|---------|---------|
-| `extend-interfaces.md` | Add L3 interfaces for spine2 and leaf2-4 | `01-interfaces.yml` |
-| `extend-bgp.md` | Add BGP peering for spine2 and leaf2-4 | `02-bgp.yml` |
-| `extend-vlans.md` | Add VLAN 30 and optional SVIs | `03-vlans.yml` |
+| `extend-interfaces.md` | Add L3 interfaces for spine2 and leaf2-4 | `01.5-interfaces.yml` |
+| `extend-bgp.md` | Add BGP peering for spine2 and leaf2-4 | `02.5-bgp.yml` |
+| `extend-vlans.md` | Add VLAN 30 and optional SVIs | `03.5-vlans.yml` |
+
+## Playbook Execution Order
+
+Run the playbooks in sequence - first the base playbooks, then the extensions:
+
+```bash
+# Base configuration (spine1, leaf1)
+ansible-playbook playbooks/01-interfaces.yml
+ansible-playbook playbooks/02-bgp.yml
+ansible-playbook playbooks/03-vlans.yml
+
+# Extension configuration (spine2, leaf2-4)
+ansible-playbook playbooks/01.5-interfaces.yml
+ansible-playbook playbooks/02.5-bgp.yml
+ansible-playbook playbooks/03.5-vlans.yml
+```
 
 ## Tips for Better Results
 
 ### Provide Context
-When using these prompts, share the existing playbook code with your AI. The more context you provide, the better the output.
-
-### Be Specific About Format
-The prompts ask for YAML output matching existing patterns. If the output doesn't match, ask the AI to adjust.
+The prompts reference existing playbooks for Claude Code to learn patterns from. Make sure you're in the `lab-01-copilots` directory when running Claude Code.
 
 ### Validate Before Applying
 Always run playbooks with `--check --diff` first:
 ```bash
-ansible-playbook playbooks/01-interfaces.yml --check --diff
+ansible-playbook playbooks/01.5-interfaces.yml --check --diff
 ```
 
 ### Iterate if Needed
-If the first response isn't quite right, refine your prompt:
-- "Use the exact same format as the spine1 example"
-- "The IP should be 10.0.6.2/30, not 10.0.6.1/30"
-- "Add the description field like in the working example"
+If the generated file needs adjustments, ask Claude Code to modify it:
+- "Change the IP on Ethernet2 to 10.0.6.2/30"
+- "Add a description comment for each interface"
+- "Use the same task structure as the original playbook"
 
 ## Device Reference
 
