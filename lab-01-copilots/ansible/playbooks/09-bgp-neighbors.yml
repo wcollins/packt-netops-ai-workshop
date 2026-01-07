@@ -1,0 +1,37 @@
+# Playbook: Get BGP Neighbors
+# Purpose: MCP-callable playbook for retrieving BGP neighbor status from a device
+#
+# Run with: ansible-playbook playbooks/09-bgp-neighbors.yml --extra-vars "target_host=spine1"
+#
+# Required Variables:
+#   - target_host: Device name (spine1, spine2, leaf1-4)
+#
+# This playbook is designed for MCP server integration. The MCP server
+# invokes this playbook to retrieve BGP neighbor information on demand.
+#
+# Example MCP interaction:
+#   User: "Show BGP neighbors on spine1"
+#   MCP: Calls this playbook with target_host=spine1
+
+---
+- name: Get BGP neighbor status
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+        fail_msg: "Required variable 'target_host' not provided (e.g., spine1, leaf1)"
+        success_msg: "Target host: {{ target_host }}"
+
+    - name: Get BGP summary
+      arista.eos.eos_command:
+        commands:
+          - show ip bgp summary | json
+      register: bgp_output
+
+    - name: Display BGP neighbors as JSON
+      ansible.builtin.debug:
+        msg: "{{ bgp_output.stdout[0] }}"
