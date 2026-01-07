@@ -19,11 +19,11 @@
 ---
 - name: Backup device configuration
   hosts: "{{ target_host }}"
-  gather_facts: true  # Need ansible_date_time
+  gather_facts: false  # Network devices don't provide standard facts
 
   vars:
     backup_dir: "{{ playbook_dir }}/../backups"
-    timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+    timestamp: "{{ now().strftime('%Y%m%dT%H%M%S') }}"
     backup_filename: "{{ inventory_hostname }}_{{ timestamp }}.cfg"
 
   tasks:
@@ -52,7 +52,7 @@
       ansible.builtin.copy:
         content: |
           ! Backup of {{ inventory_hostname }}
-          ! Timestamp: {{ ansible_date_time.iso8601 }}
+          ! Timestamp: {{ now().isoformat() }}
           ! Backed up via MCP/Ansible integration
           !
           {{ running_config.stdout[0] }}
