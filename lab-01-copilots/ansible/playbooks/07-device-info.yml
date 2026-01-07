@@ -1,0 +1,37 @@
+# Playbook: Get Device Information
+# Purpose: MCP-callable playbook for retrieving device info (hostname, model, version, uptime)
+#
+# Run with: ansible-playbook playbooks/07-device-info.yml --extra-vars "target_host=spine1"
+#
+# Required Variables:
+#   - target_host: Device name (spine1, spine2, leaf1-4)
+#
+# This playbook is designed for MCP server integration. The MCP server
+# invokes this playbook to retrieve device information on demand.
+#
+# Example MCP interaction:
+#   User: "Get info for spine1"
+#   MCP: Calls this playbook with target_host=spine1
+
+---
+- name: Get device information
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+        fail_msg: "Required variable 'target_host' not provided (e.g., spine1, leaf1)"
+        success_msg: "Target host: {{ target_host }}"
+
+    - name: Get device version info
+      arista.eos.eos_command:
+        commands:
+          - show version | json
+      register: version_output
+
+    - name: Display device info as JSON
+      ansible.builtin.debug:
+        msg: "{{ version_output.stdout[0] }}"

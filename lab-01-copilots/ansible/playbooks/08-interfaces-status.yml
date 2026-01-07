@@ -1,0 +1,37 @@
+# Playbook: Get Interface Status
+# Purpose: MCP-callable playbook for retrieving interface status from a device
+#
+# Run with: ansible-playbook playbooks/08-interfaces-status.yml --extra-vars "target_host=spine1"
+#
+# Required Variables:
+#   - target_host: Device name (spine1, spine2, leaf1-4)
+#
+# This playbook is designed for MCP server integration. The MCP server
+# invokes this playbook to retrieve interface status on demand.
+#
+# Example MCP interaction:
+#   User: "Show interfaces on leaf1"
+#   MCP: Calls this playbook with target_host=leaf1
+
+---
+- name: Get interface status
+  hosts: "{{ target_host }}"
+  gather_facts: false
+
+  tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - target_host is defined
+        fail_msg: "Required variable 'target_host' not provided (e.g., spine1, leaf1)"
+        success_msg: "Target host: {{ target_host }}"
+
+    - name: Get interface status
+      arista.eos.eos_command:
+        commands:
+          - show interfaces status | json
+      register: interfaces_output
+
+    - name: Display interface status as JSON
+      ansible.builtin.debug:
+        msg: "{{ interfaces_output.stdout[0] }}"

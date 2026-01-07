@@ -61,11 +61,13 @@ This lab has two phases:
 
 ### What's Provided (Working Examples)
 
-| Playbook | Working Example | Extension Task |
-|----------|-----------------|----------------|
-| `01-interfaces.yml` | spine1 + leaf1 interfaces | Add spine2, leaf2-4 |
-| `02-bgp.yml` | spine1 + leaf1 BGP | Add spine2, leaf2-4 |
-| `03-vlans.yml` | VLANs 10 and 20 | Add VLAN 30, SVIs |
+| Base Playbook | Working Example | Extension File |
+|---------------|-----------------|----------------|
+| `01-interfaces.yml` | spine1 + leaf1 interfaces | `01.5-interfaces.yml` (spine2, leaf2-4) |
+| `02-bgp.yml` | spine1 + leaf1 BGP | `02.5-bgp.yml` (spine2, leaf2-4) |
+| `03-vlans.yml` | VLANs 10 and 20 | `03.5-vlans.yml` (VLAN 30, SVIs) |
+
+Claude Code creates the extension files directly - no copy-paste required.
 
 ### MCP-Ready Playbooks
 
@@ -76,6 +78,9 @@ These additional playbooks are designed for MCP integration in Lab 2:
 | `04-add-vlan.yml` | Add single VLAN | `--extra-vars "target_host=leaf1 vlan_id=30 vlan_name=Management"` |
 | `05-show-config.yml` | Get running config | `--extra-vars "target_host=spine1"` |
 | `06-backup-config.yml` | Backup to file | `--extra-vars "target_host=spine1"` |
+| `07-device-info.yml` | Get version/model | `--extra-vars "target_host=spine1"` |
+| `08-interfaces-status.yml` | Get interface status | `--extra-vars "target_host=spine1"` |
+| `09-bgp-neighbors.yml` | Get BGP neighbors | `--extra-vars "target_host=spine1"` |
 
 ---
 
@@ -228,16 +233,15 @@ Run `claude` in your terminal and use the prompts from the `prompts/` folder:
 ```bash
 # Start Claude Code
 claude
-
-# Or ask Claude Code directly to extend a playbook:
-# "Read playbooks/01-interfaces.yml and extend it for spine2 and leaf2-4"
 ```
 
-Ready-to-use prompts are in the `prompts/` folder:
+Then copy-paste a prompt from the `prompts/` folder. Claude Code will create the extension playbook directly:
 
-- `prompts/extend-interfaces.md` - Add interfaces for spine2 and leaf2-4
-- `prompts/extend-bgp.md` - Add BGP peering for spine2 and leaf2-4
-- `prompts/extend-vlans.md` - Add VLAN 30 and optional SVIs
+| Prompt | Creates |
+|--------|---------|
+| `prompts/extend-interfaces.md` | `playbooks/01.5-interfaces.yml` |
+| `prompts/extend-bgp.md` | `playbooks/02.5-bgp.yml` |
+| `prompts/extend-vlans.md` | `playbooks/03.5-vlans.yml` |
 
 ### Review AI Context (Optional - 2 min)
 
@@ -259,29 +263,25 @@ Open `prompts/extend-interfaces.md` and copy the prompt.
 
 ### Step 3.2: Use Claude Code
 
-In your terminal, run `claude` and paste the prompt. Alternatively, you can ask Claude Code directly:
+In your terminal, run `claude` and paste the prompt.
 
-```
-Read playbooks/01-interfaces.yml and extend it for spine2 and leaf2-4
-```
+Claude Code will read the existing playbook pattern and create a new file at `ansible/playbooks/01.5-interfaces.yml` with the spine2 and leaf2-4 configuration.
 
-Review the generated code before adding it to the playbook.
+### Step 3.3: Review the generated file
 
-### Step 3.3: Add the generated code to the playbook
-
-Edit `ansible/playbooks/01-interfaces.yml` and add:
-1. `spine2_interfaces` variable
-2. Task to configure spine2
-3. `leaf2`, `leaf3`, `leaf4` entries in `leaf_interfaces`
+Open `ansible/playbooks/01.5-interfaces.yml` and verify:
+- IP addresses match the expected scheme
+- Task structure follows the same pattern as `01-interfaces.yml`
+- YAML syntax is correct
 
 ### Step 3.4: Validate and apply
 
 ```bash
 # Always validate first
-ansible-playbook playbooks/01-interfaces.yml --check --diff
+ansible-playbook playbooks/01.5-interfaces.yml --check --diff
 
 # Apply if validation looks good
-ansible-playbook playbooks/01-interfaces.yml
+ansible-playbook playbooks/01.5-interfaces.yml
 ```
 
 ### Step 3.5: Verify on devices
@@ -318,23 +318,22 @@ Management0            198.18.1.22/24     up         up
 
 ### Step 4.1: Use the BGP prompt
 
-Open `prompts/extend-bgp.md` and use Claude Code to generate the code.
+Open `prompts/extend-bgp.md` and copy the prompt into Claude Code.
 
-### Step 4.2: Add the code to the playbook
+Claude Code will create `ansible/playbooks/02.5-bgp.yml` with the spine2 and leaf2-4 BGP configuration.
 
-Edit `ansible/playbooks/02-bgp.yml` and add:
-1. `spine2_bgp_neighbors` variable
-2. Tasks to configure spine2 BGP
-3. `leaf2`, `leaf3`, `leaf4` entries in `leaf_bgp_config`
-
-### Step 4.3: Apply
+### Step 4.2: Review and apply
 
 ```bash
-ansible-playbook playbooks/02-bgp.yml --check --diff
-ansible-playbook playbooks/02-bgp.yml
+# Review the generated file
+# Validate first
+ansible-playbook playbooks/02.5-bgp.yml --check --diff
+
+# Apply if validation looks good
+ansible-playbook playbooks/02.5-bgp.yml
 ```
 
-### Step 4.4: Verify BGP peering
+### Step 4.3: Verify BGP peering
 
 ```bash
 # Check BGP on spine1 - should now see 4 neighbors (one per leaf)
@@ -374,16 +373,15 @@ Router identifier 22.22.22.22, local AS number 65102
 
 ### Step 5.1: Use the VLAN prompt
 
-Open `prompts/extend-vlans.md` and generate the code for VLAN 30.
+Open `prompts/extend-vlans.md` and copy the prompt into Claude Code.
 
-### Step 5.2: Add VLAN 30 to the playbook
+Claude Code will create `ansible/playbooks/03.5-vlans.yml` with VLAN 30 (and optionally SVIs).
 
-Edit `ansible/playbooks/03-vlans.yml` and add VLAN 30 (Management) to the vlans list.
-
-### Step 5.3: Apply and verify
+### Step 5.2: Apply and verify
 
 ```bash
-ansible-playbook playbooks/03-vlans.yml
+ansible-playbook playbooks/03.5-vlans.yml --check --diff
+ansible-playbook playbooks/03.5-vlans.yml
 ssh admin@198.18.1.21 "show vlan"
 ```
 
@@ -397,9 +395,9 @@ VLAN  Name                             Status    Ports
 30    Management                       active
 ```
 
-### (Bonus) Step 5.4: Add SVIs
+### (Bonus) Step 5.3: Add SVIs
 
-If time permits, use the SVI section of the prompt to add inter-VLAN routing interfaces.
+If time permits, use the SVI section of the prompt to add inter-VLAN routing interfaces. The extended prompt creates both VLAN 30 and SVIs in a single playbook.
 
 ---
 
@@ -468,16 +466,6 @@ ping 10.0.1.2
 2. Check IP addresses match the scheme in `prompts/README.md`
 3. Ensure YAML indentation is correct (2 spaces)
 4. Ask your AI to "fix this error" with the error message
-
----
-
-## Cleanup
-
-When finished with the lab:
-
-```bash
-containerlab destroy -t topology.clab.yml
-```
 
 ---
 
