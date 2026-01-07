@@ -1,50 +1,40 @@
 # Extend VLAN Configuration
 
-Use this prompt with Claude Code to add VLAN 30 and optional SVIs for inter-VLAN routing.
+Use this prompt with Claude Code to create a new playbook that adds VLAN 30 and optional SVIs for inter-VLAN routing.
 
 ## How to Use
 
 1. In your terminal, run `claude`
 2. Copy and paste the prompt below
-3. Review the generated YAML before adding to your playbook
+3. Claude Code will create the extension playbook directly
+4. Review the generated file and validate before applying
 
 ---
 
 ## Prompt (Basic - VLAN 30)
 
 ```
-I have an Ansible playbook that creates VLANs on Arista EOS leaf switches.
-Currently it creates VLAN 10 (Web_Servers) and VLAN 20 (Database_Servers).
-I need to add VLAN 30 for Management.
+Read the existing playbook at ansible/playbooks/03-vlans.yml to understand the
+patterns and structure used for VLAN configuration on leaf switches.
 
-## Working Example
+Then create a new playbook at ansible/playbooks/03.5-vlans.yml that adds
+VLAN 30 for Management on all leaf switches.
 
-vlans:
-  - vlan_id: 10
-    name: Web_Servers
-  - vlan_id: 20
-    name: Database_Servers
+## Requirements
 
-## Extension Request
+Create a complete, standalone Ansible playbook that:
 
-Add VLAN 30 with name "Management" to the vlans list.
-Follow the exact same format as the existing entries.
+1. Creates VLAN 30 with name "Management" on all leaf switches
+2. Uses arista.eos.eos_vlans module with state: merged
+3. Includes display tasks to show VLAN configuration
 
-Output as YAML that I can paste directly into the playbook.
-```
+## Conventions
+- Use arista.eos FQCN for all modules
+- Use 2-space YAML indentation
+- Use the same structure as 03-vlans.yml
+- Include header comments explaining the playbook purpose
 
----
-
-## Expected Output (Basic)
-
-```yaml
-vlans:
-  - vlan_id: 10
-    name: Web_Servers
-  - vlan_id: 20
-    name: Database_Servers
-  - vlan_id: 30
-    name: Management
+Create the file directly - do not output the YAML.
 ```
 
 ---
@@ -52,91 +42,90 @@ vlans:
 ## Prompt (Bonus - SVIs)
 
 ```
-I have an Ansible playbook with VLANs 10, 20, and 30 configured on Arista EOS
-leaf switches. I want to add SVIs (Switched Virtual Interfaces) for inter-VLAN
-routing on each leaf switch.
+Read the existing playbook at ansible/playbooks/03-vlans.yml to understand the
+patterns and structure used for VLAN configuration.
+
+Then create a new playbook at ansible/playbooks/03.5-vlans.yml that:
+1. Creates VLAN 30 for Management
+2. Configures SVIs (Switched Virtual Interfaces) for inter-VLAN routing
 
 ## SVI Requirements
 
-- Vlan10: 192.168.10.1/24 (same IP on all leaves for anycast gateway)
-- Vlan20: 192.168.20.1/24
-- Vlan30: 192.168.30.1/24
+Configure these SVIs on all leaf switches:
+- Vlan10: 192.168.10.1/24 (Web Servers gateway)
+- Vlan20: 192.168.20.1/24 (Database Servers gateway)
+- Vlan30: 192.168.30.1/24 (Management gateway)
 
-## Extension Request
+Note: Using the same IP on all leaves enables anycast gateway functionality.
 
-Create a new Ansible play that:
-1. Defines SVI interfaces as a variable
-2. Configures SVIs on all leaf switches using arista.eos.eos_l3_interfaces
-3. Displays the configured SVIs
+## Requirements
 
-Use the same structure as the interface playbook (01-interfaces.yml).
-Output as YAML that I can add to the playbook.
-```
+Create a complete, standalone Ansible playbook with two plays:
 
----
+### Play 1: Create VLAN 30
+- Target: all leaf switches
+- Use arista.eos.eos_vlans to create VLAN 30 (Management)
+- Include display task for VLANs
 
-## Expected Output (Bonus)
+### Play 2: Configure SVIs
+- Target: all leaf switches
+- Use arista.eos.eos_l3_interfaces to configure SVI IPs
+- Note: eos_l3_interfaces only supports name, ipv4, ipv6 - use comments for documentation
+- Include display task for IP interfaces
 
-```yaml
-# Add as a new play at the end of the playbook
+## Conventions
+- Use arista.eos FQCN for all modules
+- Use 2-space YAML indentation
+- Include header comments explaining the playbook purpose
 
-- name: Configure SVIs on leaf switches
-  hosts: leaves
-  gather_facts: false
-
-  vars:
-    # Note: eos_l3_interfaces only supports name, ipv4, ipv6.
-    # Use eos_interfaces module for descriptions if needed.
-    svi_interfaces:
-      - name: Vlan10  # Web Servers Gateway
-        ipv4:
-          - address: 192.168.10.1/24
-      - name: Vlan20  # Database Servers Gateway
-        ipv4:
-          - address: 192.168.20.1/24
-      - name: Vlan30  # Management Gateway
-        ipv4:
-          - address: 192.168.30.1/24
-
-  tasks:
-    - name: Configure SVI interfaces
-      arista.eos.eos_l3_interfaces:
-        config: "{{ svi_interfaces }}"
-        state: merged
-
-    - name: Display SVI configuration
-      arista.eos.eos_command:
-        commands:
-          - show ip interface brief | include Vlan
-      register: svi_output
-
-    - name: Show SVI status
-      ansible.builtin.debug:
-        var: svi_output.stdout_lines
+Create the file directly - do not output the YAML.
 ```
 
 ---
 
 ## Validation
 
-After adding VLAN 30:
+After the file is created, run:
 
 ```bash
-ansible-playbook playbooks/03-vlans.yml --check --diff
+ansible-playbook playbooks/03.5-vlans.yml --check --diff
 ```
 
-After adding SVIs (bonus):
+Verify that:
+- VLAN 30 is created on all leaf switches
+- SVIs are configured with correct IPs (if using bonus prompt)
 
+To apply the configuration:
 ```bash
-ansible-playbook playbooks/03-vlans.yml --check --diff
+ansible-playbook playbooks/03.5-vlans.yml
 ```
 
-To verify VLANs are working:
+To verify VLANs:
 ```bash
 ansible leaves -m arista.eos.eos_command -a "commands='show vlan brief'"
 ```
 
-To verify SVIs are working:
+To verify SVIs:
 ```bash
 ansible leaves -m arista.eos.eos_command -a "commands='show ip interface brief'"
 ```
+
+---
+
+## Reference
+
+### VLANs
+
+| VLAN ID | Name | Purpose |
+|---------|------|---------|
+| 10 | Web_Servers | Web tier |
+| 20 | Database_Servers | Database tier |
+| 30 | Management | Management network |
+
+### SVIs (Bonus)
+
+| Interface | IP Address | Purpose |
+|-----------|------------|---------|
+| Vlan10 | 192.168.10.1/24 | Web gateway |
+| Vlan20 | 192.168.20.1/24 | Database gateway |
+| Vlan30 | 192.168.30.1/24 | Management gateway |
