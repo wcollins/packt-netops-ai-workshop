@@ -47,7 +47,8 @@ async def get_device_info(device: str) -> Dict[str, Any]:
     # Extract device data from parsed JSON
     data = result.get("data", {})
     if not data:
-        return {"error": "Failed to parse device response"}
+        error_detail = result.get("parse_error", "Unknown parsing error")
+        return {"error": f"Failed to parse device response: {error_detail}"}
 
     return {
         "hostname": data.get("hostname", "unknown"),
