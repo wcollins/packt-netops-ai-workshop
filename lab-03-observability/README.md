@@ -55,8 +55,9 @@ By the end of this lab, you will:
 ### Monitoring Stack
 | Component | Status | Description |
 |-----------|--------|-------------|
-| `docker-compose.yml` | Working | Prometheus + Grafana (one command deploy) |
-| `alert_rules.yml` | Working | 3 example rules (TestAlert, HighMemory, InstanceDown) |
+| `docker-compose.yml` | Working | Prometheus + Grafana + Network Exporter |
+| `network_exporter.py` | Working | Synthetic metrics for BGP, interfaces, device health |
+| `alert_rules.yml` | Working | 7 alert rules (BGP, interfaces, CPU, memory, temperature) |
 | `network-overview.json` | Working | Grafana dashboard with 4 panels |
 
 ### MCP Alerting Tools
@@ -119,23 +120,25 @@ docker compose ps
 
 Expected output:
 ```
-NAME         STATUS    PORTS
-prometheus   running   0.0.0.0:9090->9090/tcp
-grafana      running   0.0.0.0:3000->3000/tcp
+NAME               STATUS    PORTS
+prometheus         running   0.0.0.0:9090->9090/tcp
+grafana            running   0.0.0.0:3000->3000/tcp
+network_exporter   running   0.0.0.0:8888->8888/tcp
 ```
 
 ### Step 1.3: Access dashboards
 
 - **Prometheus:** http://localhost:9090
 - **Grafana:** http://localhost:3000 (admin/admin)
+- **Network Exporter Metrics:** http://localhost:8888/metrics
 
 ### Step 1.4: View existing alerts
 
 1. Open http://localhost:9090/alerts
-2. You should see the 3 configured alert rules
-3. The "TestAlert" should be firing (for demonstration)
+2. You should see 7 configured alert rules (TestAlert, BGPSessionDown, InterfaceDown, HighCPU, HighMemory, InterfaceErrors, HighTemperature)
+3. The "TestAlert" fires constantly; other alerts fire based on simulated network conditions
 
-**Note:** This lab uses Prometheus self-monitoring only (no network device exporters). The alerts are synthetic for demonstration purposes. In production, you would add exporters to your network devices to collect real metrics.
+**Note:** This lab includes a synthetic network metrics exporter that generates realistic BGP, interface, and device health metrics for the spine-leaf topology. These metrics enable meaningful alerting demonstrations without requiring real network device exporters.
 
 ---
 
@@ -299,11 +302,17 @@ The analyzer uses an LLM to provide:
 # Check monitoring stack
 docker compose ps
 
+# Check network exporter metrics
+curl -s http://localhost:8888/metrics | grep bgp
+
 # Query Prometheus alerts API
 curl http://localhost:9090/api/v1/alerts | python -m json.tool
 
 # Check alert rules
 curl -s http://localhost:9090/api/v1/rules | jq '.data.groups[].rules[].name'
+
+# Query BGP session states
+curl -s 'http://localhost:9090/api/v1/query?query=bgp_session_state' | jq
 
 # Test alerting tools
 python alerting_tools.py
