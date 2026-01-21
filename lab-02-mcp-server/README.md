@@ -117,7 +117,7 @@ Use Claude Code to add new tools using prompts from the `prompts/` folder:
 - [ ] `backup_config(device)` - Backup device configuration (~10 min)
 
 ### Optional Extensions
-- [ ] `show_running_config(device)` - Get config via Ansible (~10 min)
+- [ ] `get_running_config(device)` - Get config via Ansible (~10 min)
 
 ## AI Prompts
 
@@ -125,7 +125,7 @@ Ready-to-use prompts are in the `prompts/` folder:
 
 - `prompts/add-vlan-tool.md` - Add VLAN creation tool
 - `prompts/add-config-backup.md` - Add configuration backup tool
-- `prompts/add-ansible-tools.md` - Add additional Ansible-invoking tools
+- `prompts/add-get-config-tool.md` - Get running configuration
 
 ---
 
