@@ -22,10 +22,8 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Example: Monitor local services
-  # Uncomment and modify for your network devices
-  # - job_name: 'network-devices'
-  #   static_configs:
-  #     - targets:
-  #       - '198.18.1.11:9100'  # spine1
-  #       - '198.18.1.12:9100'  # spine2
+  # Synthetic network device metrics
+  - job_name: 'network_devices'
+    static_configs:
+      - targets: ['network_exporter:8888']
+    scrape_interval: 15s
