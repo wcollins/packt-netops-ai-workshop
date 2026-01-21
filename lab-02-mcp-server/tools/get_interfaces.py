@@ -48,7 +48,8 @@ async def get_interfaces(device: str) -> Dict[str, Any]:
     # Extract interface data from parsed JSON
     data = result.get("data", {})
     if not data:
-        return {"error": "Failed to parse interface data"}
+        error_detail = result.get("parse_error", "Unknown parsing error")
+        return {"error": f"Failed to parse interface data: {error_detail}"}
 
     # Arista "show interfaces status | json" structure
     interface_statuses = data.get("interfaceStatuses", {})

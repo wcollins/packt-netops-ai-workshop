@@ -1,0 +1,31 @@
+# Prometheus Configuration
+# Workshop: AI-Powered Network Operations
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alert rules
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Example: Monitor local services
+  # Uncomment and modify for your network devices
+  # - job_name: 'network-devices'
+  #   static_configs:
+  #     - targets:
+  #       - '198.18.1.11:9100'  # spine1
+  #       - '198.18.1.12:9100'  # spine2
