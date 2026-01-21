@@ -1,0 +1,18 @@
+# Dockerfile for Synthetic Network Metrics Exporter
+# Generates realistic network device metrics for Prometheus
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install prometheus-client
+RUN pip install --no-cache-dir prometheus-client
+
+# Copy exporter script
+COPY network_exporter.py .
+
+# Expose metrics port
+EXPOSE 8888
+
+# Run the exporter
+CMD ["python", "network_exporter.py"]

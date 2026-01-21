@@ -17,6 +17,15 @@ services:
       - '--web.enable-lifecycle'
     restart: unless-stopped
 
+  network_exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile.exporter
+    container_name: network_exporter
+    ports:
+      - "8888:8888"
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana-oss:latest
     container_name: grafana
