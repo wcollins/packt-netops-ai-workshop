@@ -83,10 +83,9 @@ Device IP mapping:
 # 3. Restart the MCP server - your tool is auto-discovered!
 #
 # See prompts/ folder for AI assistance with these tasks:
-# - prompts/add-bgp-tool.md - Add BGP neighbor status tool
-# - prompts/add-health-check.md - Add multi-device health check
-# - prompts/add-config-backup.md - Add configuration backup tool
-# - prompts/add-ansible-tools.md - Add more Ansible-invoking tools
+# - prompts/add-vlan-tool.md - Add VLAN creation tool (Required)
+# - prompts/add-config-backup.md - Add configuration backup tool (Required)
+# - prompts/add-get-config-tool.md - Add get running config tool (Optional)
 
 
 # =============================================================================
