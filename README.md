@@ -36,7 +36,7 @@ All tools are free and open-source:
 | **Network Lab** | Containerlab, Arista cEOS-lab |
 | **Automation** | Ansible, Python 3.10+ |
 | **AI/LLM** | Claude Code, Model Context Protocol (MCP), OpenAI/Anthropic/Ollama |
-| **Monitoring** | Prometheus, Grafana, Netdata |
+| **Monitoring** | Prometheus, Grafana |
 | **Development** | VS Code, Docker, Git |
 
 **Total cost:** $0-20 (all tools free; optional API credits)

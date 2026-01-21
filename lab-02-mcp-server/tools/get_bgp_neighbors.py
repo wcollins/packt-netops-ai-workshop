@@ -53,7 +53,8 @@ async def get_bgp_neighbors(device: str) -> Dict[str, Any]:
     # Extract BGP data from parsed JSON
     data = result.get("data", {})
     if not data:
-        return {"error": "Failed to parse device response"}
+        error_detail = result.get("parse_error", "Unknown parsing error")
+        return {"error": f"Failed to parse device response: {error_detail}"}
 
     # Extract default VRF data
     vrf_data = data.get("vrfs", {}).get("default", {})

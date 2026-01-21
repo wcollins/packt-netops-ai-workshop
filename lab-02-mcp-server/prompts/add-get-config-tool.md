@@ -1,6 +1,6 @@
-# Add Config Backup Tool
+# Add Get Running Config Tool
 
-Create `tools/backup_config.py` - a tool to backup device configuration.
+Create `tools/get_running_config.py` - a tool to retrieve device configuration.
 
 ## Working Example (tools/get_device_info.py)
 
@@ -44,17 +44,16 @@ def register(mcp):
 
 ## Playbook Info
 
-`06-backup-config.yml` requires: target_host
-- Runs "show running-config" on the device
-- Saves output to backups/<hostname>_<timestamp>.cfg
+`05-show-config.yml` requires: target_host, optional: section (interfaces, bgp, vlans)
 
 ## Requirements
 
-Create `tools/backup_config.py` with:
-1. An async function `backup_config(device: str)` that:
+Create `tools/get_running_config.py` with:
+1. An async function `get_running_config(device: str, section: str = None)` that:
    - Validates device is in VALID_DEVICES
-   - Calls the 06-backup-config.yml playbook (no parse_json needed)
-   - Returns status, message, and backup file location
+   - Calls the 05-show-config.yml playbook (no parse_json needed)
+   - Optionally filters by section (interfaces, bgp, vlans)
+   - Returns the configuration text from stdout
 2. A `register(mcp)` function that registers the tool
 
 ## Expected Output Format
@@ -62,7 +61,8 @@ Create `tools/backup_config.py` with:
 ```json
 {
     "status": "success",
-    "message": "Configuration backed up for spine1",
-    "file": "backups/spine1_20250124T103000.cfg"
+    "device": "leaf1",
+    "section": "bgp",
+    "config": "router bgp 65101\n   router-id 11.11.11.11\n..."
 }
 ```
