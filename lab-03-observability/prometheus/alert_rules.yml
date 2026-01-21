@@ -1,0 +1,57 @@
+# Prometheus Alert Rules
+# Workshop: Build Intelligent Networks with AI
+#
+# WORKING EXAMPLE: Three alert rules demonstrating different severities.
+# EXTENSION TASK: Add network-specific alerts (BGP, interfaces, etc.).
+# See prompts/add-alert-rules.md for AI assistance.
+
+groups:
+  - name: workshop_alerts
+    rules:
+      # =======================================================================
+      # WORKING EXAMPLE: Test Alert (info severity)
+      # =======================================================================
+      # Always fires - used to demonstrate the AI alert analyzer
+      - alert: TestAlert
+        expr: vector(1)
+        for: 0m
+        labels:
+          severity: info
+          team: network
+        annotations:
+          summary: "Test alert for workshop"
+          description: "This is a test alert to demonstrate the AI alert analyzer."
+
+      # =======================================================================
+      # WORKING EXAMPLE: High Memory Usage (warning severity)
+      # =======================================================================
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: network
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% on {{ $labels.instance }}"
+
+      # =======================================================================
+      # WORKING EXAMPLE: Instance Down (critical severity)
+      # =======================================================================
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: network
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "{{ $labels.instance }} has been unreachable for more than 1 minute."
+
+      # =======================================================================
+      # EXTENSION TASK: Add custom alert rules
+      # =======================================================================
+      # See prompts/add-alert-rules.md for AI assistance with:
+      # - BGP peer down alerts
+      # - Interface error alerts
+      # - CPU threshold alerts
