@@ -8,7 +8,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from .constants import ANSIBLE_DIR
 
 
@@ -38,7 +38,7 @@ def _get_ansible_playbook_path() -> str:
     return shutil.which("ansible-playbook") or "ansible-playbook"
 
 
-def _extract_device_json(ansible_json_output: str) -> Optional[Any]:
+def _extract_device_json(ansible_json_output: str) -> Tuple[Optional[Any], Optional[str]]:
     """
     Extract device command output from Ansible JSON callback format.
 
@@ -49,36 +49,59 @@ def _extract_device_json(ansible_json_output: str) -> Optional[Any]:
         ansible_json_output: Raw stdout from ansible-playbook with JSON callback
 
     Returns:
-        Parsed JSON data from device, or None if not found
+        Tuple of (data, error):
+            - On success: (parsed_data, None)
+            - On failure: (None, descriptive_error_string)
     """
+    # Ansible may output text before JSON (e.g., "Using ... config file")
+    # Find the start of JSON data
+    json_start = ansible_json_output.find('{')
+    if json_start == -1:
+        return None, "No JSON object found in Ansible output"
+
+    json_text = ansible_json_output[json_start:]
+
     try:
-        data = json.loads(ansible_json_output)
+        data = json.loads(json_text)
+    except json.JSONDecodeError as e:
+        return None, f"JSON decode error at position {e.pos}: {e.msg}"
 
-        # Navigate Ansible JSON callback structure:
-        # plays[0].tasks[-1].hosts.<hostname>.msg contains our data
-        plays = data.get("plays", [])
-        if not plays:
-            return None
+    # Navigate Ansible JSON callback structure:
+    # plays[0].tasks[-1].hosts.<hostname>.msg contains our data
+    plays = data.get("plays", [])
+    if not plays:
+        return None, "No plays found in Ansible output"
 
-        tasks = plays[0].get("tasks", [])
-        if not tasks:
-            return None
+    tasks = plays[0].get("tasks", [])
+    if not tasks:
+        return None, "No tasks found in Ansible play"
 
-        # Find the debug task (usually last task with 'msg')
-        for task in reversed(tasks):
-            hosts = task.get("hosts", {})
-            for host_data in hosts.values():
-                if "msg" in host_data:
-                    msg = host_data["msg"]
-                    # msg might be string (needs parsing) or already dict
-                    if isinstance(msg, str):
-                        return json.loads(msg)
-                    return msg
+    # Check for host unreachable/failed status in any task
+    for task in tasks:
+        hosts = task.get("hosts", {})
+        for hostname, host_data in hosts.items():
+            if host_data.get("unreachable"):
+                msg = host_data.get("msg", "No route to host")
+                return None, f"Host {hostname} unreachable: {msg}"
+            if host_data.get("failed"):
+                msg = host_data.get("msg", "Task failed")
+                return None, f"Host {hostname} task failed: {msg}"
 
-        return None
+    # Find the debug task (usually last task with 'msg')
+    for task in reversed(tasks):
+        hosts = task.get("hosts", {})
+        for hostname, host_data in hosts.items():
+            if "msg" in host_data:
+                msg = host_data["msg"]
+                # msg might be string (needs parsing) or already dict
+                if isinstance(msg, str):
+                    try:
+                        return json.loads(msg), None
+                    except json.JSONDecodeError as e:
+                        return None, f"Failed to parse device JSON: {e.msg}"
+                return msg, None
 
-    except (json.JSONDecodeError, KeyError, IndexError):
-        return None
+    return None, "No debug task output found in Ansible response"
 
 
 def run_ansible_playbook(
@@ -145,9 +168,11 @@ def run_ansible_playbook(
 
         # Parse JSON output if requested and successful
         if parse_json and result.returncode == 0:
-            data = _extract_device_json(result.stdout)
+            data, parse_error = _extract_device_json(result.stdout)
             if data is not None:
                 response["data"] = data
+            elif parse_error:
+                response["parse_error"] = parse_error
 
         return response
 
