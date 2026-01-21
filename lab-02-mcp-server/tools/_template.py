@@ -6,7 +6,7 @@ This file shows the structure for MCP tools. Use AI prompts in the
 prompts/ folder to create new tools - they will generate properly
 structured files based on this pattern.
 
-See prompts/add-bgp-tool.md for an example.
+See prompts/add-vlan-tool.md for an example.
 
 Structure:
 1. Module docstring with tool description
