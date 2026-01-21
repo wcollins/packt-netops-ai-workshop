@@ -23,35 +23,84 @@ groups:
           description: "This is a test alert to demonstrate the AI alert analyzer."
 
       # =======================================================================
-      # WORKING EXAMPLE: High Memory Usage (warning severity)
+      # WORKING EXAMPLE: BGP Session Down (critical severity)
       # =======================================================================
-      - alert: HighMemoryUsage
-        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
-        for: 5m
-        labels:
-          severity: warning
-          team: network
-        annotations:
-          summary: "High memory usage detected"
-          description: "Memory usage is above 85% on {{ $labels.instance }}"
-
-      # =======================================================================
-      # WORKING EXAMPLE: Instance Down (critical severity)
-      # =======================================================================
-      - alert: InstanceDown
-        expr: up == 0
+      - alert: BGPSessionDown
+        expr: bgp_session_state == 0
         for: 1m
         labels:
           severity: critical
           team: network
         annotations:
-          summary: "Instance {{ $labels.instance }} is down"
-          description: "{{ $labels.instance }} has been unreachable for more than 1 minute."
+          summary: "BGP session down on {{ $labels.device }}"
+          description: "BGP session to {{ $labels.peer }} (ASN {{ $labels.asn }}) is down on {{ $labels.device }}."
+
+      # =======================================================================
+      # WORKING EXAMPLE: Interface Down (critical severity)
+      # =======================================================================
+      - alert: InterfaceDown
+        expr: interface_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: network
+        annotations:
+          summary: "Interface down on {{ $labels.device }}"
+          description: "{{ $labels.interface }} is down on {{ $labels.device }}."
+
+      # =======================================================================
+      # WORKING EXAMPLE: High CPU (warning severity)
+      # =======================================================================
+      - alert: HighCPU
+        expr: device_cpu_percent > 80
+        for: 2m
+        labels:
+          severity: warning
+          team: network
+        annotations:
+          summary: "High CPU on {{ $labels.device }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.device }}."
+
+      # =======================================================================
+      # WORKING EXAMPLE: High Memory (warning severity)
+      # =======================================================================
+      - alert: HighMemory
+        expr: device_memory_percent > 85
+        for: 2m
+        labels:
+          severity: warning
+          team: network
+        annotations:
+          summary: "High memory on {{ $labels.device }}"
+          description: "Memory usage is {{ $value }}% on {{ $labels.device }}."
+
+      # =======================================================================
+      # WORKING EXAMPLE: Interface Errors (warning severity)
+      # =======================================================================
+      - alert: InterfaceErrors
+        expr: rate(interface_errors_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: network
+        annotations:
+          summary: "Interface errors on {{ $labels.device }}"
+          description: "{{ $labels.interface }} on {{ $labels.device }} is experiencing {{ $value }} errors/sec."
+
+      # =======================================================================
+      # WORKING EXAMPLE: High Temperature (warning severity)
+      # =======================================================================
+      - alert: HighTemperature
+        expr: device_temperature_celsius > 65
+        for: 2m
+        labels:
+          severity: warning
+          team: network
+        annotations:
+          summary: "High temperature on {{ $labels.device }}"
+          description: "{{ $labels.sensor }} sensor on {{ $labels.device }} is at {{ $value }}C."
 
       # =======================================================================
       # EXTENSION TASK: Add custom alert rules
       # =======================================================================
-      # See prompts/add-alert-rules.md for AI assistance with:
-      # - BGP peer down alerts
-      # - Interface error alerts
-      # - CPU threshold alerts
+      # See prompts/add-alert-rules.md for AI assistance with additional rules
