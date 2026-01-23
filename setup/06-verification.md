@@ -143,7 +143,7 @@ containerlab destroy -t topology.clab.yml
 
 **Claude Code not found**
 - Restart terminal after installation
-- See [06-claude-code.md](06-claude-code.md) troubleshooting section
+- See [05-claude-code.md](05-claude-code.md) troubleshooting section
 
 **Containerlab deploy fails**
 - Ensure Docker is running: `docker ps`
