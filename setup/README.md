@@ -14,8 +14,8 @@ Complete these steps **before** the workshop day.
 | 2 | [Arista cEOS Image](02-arista.md) | [ ] |
 | 3 | [API Keys](03-api-keys.md) | [ ] |
 | 4 | [Python Environment](04-python.md) | [ ] |
-| 5 | [Claude Code](06-claude-code.md) | [ ] |
-| 6 | [Verification](05-verification.md) | [ ] |
+| 5 | [Claude Code](05-claude-code.md) | [ ] |
+| 6 | [Verification](06-verification.md) | [ ] |
 
 ---
 
