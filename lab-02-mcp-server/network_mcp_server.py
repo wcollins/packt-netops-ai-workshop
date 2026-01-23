@@ -21,9 +21,18 @@ Test with: python -m pytest tests/test_mcp_server.py
 """
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 # Initialize MCP server
-mcp = FastMCP("Network Operations")
+# Disable DNS rebinding protection to allow remote access via IP address
+# This is required for connecting from Claude Desktop on another machine
+mcp = FastMCP(
+    "Network Operations",
+    host="0.0.0.0",  # Bind to all interfaces for remote access
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
+    ),
+)
 
 
 # =============================================================================
