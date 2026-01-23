@@ -253,6 +253,53 @@ Add this to your config file (same format for Claude Desktop and AnythingLLM):
 - Replace `/full/path/to` with your actual path. Find it with `pwd`.
 - Use the **virtual environment Python** (`.venv/bin/python`), not system Python, to ensure MCP dependencies are available.
 
+### Step 4.2b: Remote Access (Claude Desktop on Another Machine)
+
+If Claude Desktop is running on a **different machine** (e.g., your Mac laptop connecting to a Linux workshop VM), you need to run the MCP server with SSE transport instead.
+
+**On the workshop VM**, start the MCP server in SSE mode:
+
+```bash
+cd lab-02-mcp-server
+mcp run -t sse network_mcp_server.py
+```
+
+The server will start on `http://0.0.0.0:8000/sse`.
+
+**On your Mac/Windows machine**, configure Claude Desktop to connect via `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "network-ops": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://<WORKSHOP_VM_IP>:8000/sse",
+        "--allow-http"
+      ]
+    }
+  }
+}
+```
+
+Replace `<WORKSHOP_VM_IP>` with the IP address of your workshop VM (e.g., `172.16.10.10`).
+
+**Note:** The `--allow-http` flag is required since the workshop uses HTTP (not HTTPS).
+
+**Requirements:**
+- Node.js installed on the Claude Desktop machine (for `npx`)
+- Network connectivity between machines (verify with `ping <WORKSHOP_VM_IP>`)
+- Port 8000 open on the workshop VM firewall
+
+**Verify connectivity:**
+
+```bash
+# From your Mac/Windows machine
+curl http://<WORKSHOP_VM_IP>:8000/sse
+# Should return: event: endpoint, data: /messages/?session_id=...
+```
+
 ### Step 4.3: Restart your AI client
 
 Close and reopen Claude Desktop or AnythingLLM completely.
