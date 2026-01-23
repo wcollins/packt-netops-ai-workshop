@@ -86,4 +86,4 @@ https://docs.anthropic.com/en/docs/claude-code
 
 ## Next Step
 
-Continue to [05-verification.md](05-verification.md) (or return to [README.md](README.md))
+Continue to [06-verification.md](06-verification.md) (or return to [README.md](README.md))
