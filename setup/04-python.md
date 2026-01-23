@@ -54,7 +54,7 @@ uv python install 3.12
 ## Step 3: Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/packt-netops-ai-workshop.git
+git clone https://github.com/wcollins/packt-netops-ai-workshop.git
 cd packt-netops-ai-workshop
 ```
 
@@ -160,4 +160,4 @@ uv sync --reinstall
 
 ## Next Step
 
-Continue to [05-verification.md](05-verification.md)
+Continue to [05-claude-code.md](05-claude-code.md)
