@@ -25,6 +25,8 @@ By the end of this workshop, you will be able to:
 2. Lab 2: Add MCP tools that invoke those playbooks ("Add VLAN 15 to leaf2")
 3. Lab 3: Extend MCP with Prometheus alerting tools
 
+Building something cool? Check out the [Community Showcase](./showcase) to see what others are doing or share your own work.
+
 ---
 
 ## Technology Stack
